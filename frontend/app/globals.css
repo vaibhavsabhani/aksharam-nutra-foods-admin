@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme inline { --font-sans: "Trebuchet MS", "Segoe UI", sans-serif; --font-mono: "SFMono-Regular", Consolas, monospace; }
+* { box-sizing: border-box; }
+::selection { background: #b9e4d8; color: #063d3b; }
+
+body {
+  margin: 0;
+  background: #f5f8f6;
+  color: #0f172a;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}

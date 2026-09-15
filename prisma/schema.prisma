@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   Int                  @id @default(autoincrement())
+  name                 String
+  email                String               @unique
+  passwordHash         String
+  role                 UserRole             @default(ADMIN)
+  status               UserStatus           @default(ACTIVE)
+  isEmailVerified      Boolean              @default(false)
+  emailVerifiedAt      DateTime?
+  lastLoginAt          DateTime?
+  lastLoginIp          String?
+  passwordChangedAt    DateTime?
+  passwordUpdatedById  Int?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  createdById          Int?
+  updatedById          Int?
+  refreshTokens        RefreshToken[]
+  passwordResetTokens  PasswordResetToken[]
+  blogPosts            BlogPost[]
+  createdBy            User?                @relation("UserCreatedBy", fields: [createdById], references: [id])
+  createdUsers         User[]               @relation("UserCreatedBy")
+  updatedBy            User?                @relation("UserUpdatedBy", fields: [updatedById], references: [id])
+  updatedUsers         User[]               @relation("UserUpdatedBy")
+  passwordUpdatedBy    User?                @relation("PasswordUpdatedBy", fields: [passwordUpdatedById], references: [id])
+  passwordUpdatedUsers User[]               @relation("PasswordUpdatedBy")
+
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
+  @@index([updatedById])
+  @@index([passwordUpdatedById])
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model RefreshToken {
+  id         Int       @id @default(autoincrement())
+  tokenHash  String    @unique
+  userId     Int
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deviceName String?
+  deviceType String?
+  ipAddress  String?
+  userAgent  String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+// PASSWORD RESET TOKEN
+
+model PasswordResetToken {
+  id        Int       @id @default(autoincrement())
+  tokenHash String    @unique
+  userId    Int
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([usedAt])
+}
+
+// BLOG POST MODEL
+
+model BlogPost {
+  id            Int      @id @default(autoincrement())
+  title         String
+  content       String   @db.Text
+  coverImageUrl String?
+  isShow        Boolean  @default(true)
+  authorId      Int?
+  author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([createdAt])
+}
