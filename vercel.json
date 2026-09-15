@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
-  "buildCommand": "npm run build:frontend && cp -R frontend/.next .next",
-  "outputDirectory": ".next"
+  "buildCommand": "npm run build:frontend",
+  "outputDirectory": "frontend/.next"
 }
