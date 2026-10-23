@@ -27,6 +27,7 @@ model User {
   refreshTokens        RefreshToken[]
   passwordResetTokens  PasswordResetToken[]
   blogPosts            BlogPost[]
+  testimonials         Testimonial[]
   createdBy            User?                @relation("UserCreatedBy", fields: [createdById], references: [id])
   createdUsers         User[]               @relation("UserCreatedBy")
   updatedBy            User?                @relation("UserUpdatedBy", fields: [updatedById], references: [id])
@@ -97,6 +98,20 @@ model BlogPost {
   author        User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model Testimonial {
+  id        Int      @id @default(autoincrement())
+  quote     String   @db.Text
+  author    String
+  isShow    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  Int?
+  creator   User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
 
   @@index([authorId])
   @@index([createdAt])

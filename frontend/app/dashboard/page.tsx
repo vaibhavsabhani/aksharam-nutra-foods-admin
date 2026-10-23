@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, LoaderCircle, PenTool } from "lucide-react";
+import { LogOut, LoaderCircle, PenTool, MessageSquareQuote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BlogPost, useGetMeQuery, useLogoutMutation } from "@/lib/api";
 import { BlogForm } from "@/components/blog/blog-form";
@@ -73,6 +73,9 @@ export default function DashboardPage() {
           <p className="mt-2 text-base text-slate-600">
             Create, edit, toggle visibility (isShow), and publish rich blog articles with TinyMCE editor.
           </p>
+          <Button variant="outline" className="mt-4" onClick={() => router.push("/dashboard/testimonials")}>
+            <MessageSquareQuote size={16} /> Manage testimonials
+          </Button>
           {isLoading && (
             <div className="mt-4 flex items-center gap-2 text-teal-700 text-sm">
               <LoaderCircle className="animate-spin" size={18} />

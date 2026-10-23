@@ -39,6 +39,15 @@ export type BlogPost = {
   coverImageUrl?: string | null;
 };
 
+export type Testimonial = {
+  id: number;
+  quote: string;
+  author: string;
+  isShow: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type MessageResponse = { message: string; resetToken?: string };
 
 const rawBaseQuery = fetchBaseQuery({
@@ -106,7 +115,7 @@ const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQue
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["User", "Blog"],
+  tagTypes: ["User", "Blog", "Testimonial"],
   endpoints: (builder) => ({
     login: builder.mutation<Session, { email: string; password: string }>({
       query: (body) => ({ url: "/auth/login", method: "POST", body }),
@@ -161,6 +170,29 @@ export const authApi = createApi({
       query: (id) => ({ url: `/blogs/${id}`, method: "DELETE" }),
       invalidatesTags: ["Blog"],
     }),
+    getTestimonials: builder.query<Testimonial[], { onlyVisible?: boolean } | void>({
+      query: (arg) => ({
+        url: "/testimonials",
+        params: arg?.onlyVisible ? { onlyVisible: true } : undefined,
+      }),
+      providesTags: ["Testimonial"],
+    }),
+    createTestimonial: builder.mutation<Testimonial, { quote: string; author: string; isShow?: boolean }>({
+      query: (body) => ({ url: "/testimonials", method: "POST", body }),
+      invalidatesTags: ["Testimonial"],
+    }),
+    updateTestimonial: builder.mutation<Testimonial, { id: number; quote?: string; author?: string; isShow?: boolean }>({
+      query: ({ id, ...body }) => ({ url: `/testimonials/${id}`, method: "PATCH", body }),
+      invalidatesTags: ["Testimonial"],
+    }),
+    toggleTestimonialVisibility: builder.mutation<Testimonial, number>({
+      query: (id) => ({ url: `/testimonials/${id}/toggle-visibility`, method: "PATCH" }),
+      invalidatesTags: ["Testimonial"],
+    }),
+    deleteTestimonial: builder.mutation<{ id?: number }, number>({
+      query: (id) => ({ url: `/testimonials/${id}`, method: "DELETE" }),
+      invalidatesTags: ["Testimonial"],
+    }),
   }),
 });
 
@@ -176,4 +208,9 @@ export const {
   useUpdateBlogMutation,
   useToggleBlogVisibilityMutation,
   useDeleteBlogMutation,
+  useGetTestimonialsQuery,
+  useCreateTestimonialMutation,
+  useUpdateTestimonialMutation,
+  useToggleTestimonialVisibilityMutation,
+  useDeleteTestimonialMutation,
 } = authApi;
