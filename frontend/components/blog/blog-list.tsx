@@ -8,7 +8,6 @@ import {
   Eye,
   EyeOff,
   Edit,
-  X,
   LoaderCircle,
   CheckCircle2,
 } from "lucide-react";
@@ -19,6 +18,8 @@ import {
   BlogPost,
 } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { BlogPreviewModal } from "./blog-preview-modal";
 
 interface BlogListProps {
   onEdit?: (blog: BlogPost) => void;
@@ -29,16 +30,25 @@ export function BlogList({ onEdit }: BlogListProps) {
   const [deleteBlog, { isLoading: isDeleting }] = useDeleteBlogMutation();
   const [toggleVisibility, { isLoading: isToggling }] = useToggleBlogVisibilityMutation();
   const [selectedBlog, setSelectedBlog] = useState<BlogPost | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const handleDelete = async (id: number, title: string) => {
-    if (!window.confirm(`Are you sure you want to delete "${title}"?`)) return;
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await deleteBlog(id).unwrap();
-      setActionSuccess(`Blog "${title}" was deleted.`);
+      setDeleteError(null);
+      await deleteBlog(deleteTarget.id).unwrap();
+      const deletedTitle = deleteTarget.title;
+      setDeleteTarget(null);
+      setActionSuccess(`Blog "${deletedTitle}" was successfully deleted.`);
       setTimeout(() => setActionSuccess(null), 4000);
-    } catch {
-      alert("Failed to delete the blog post.");
+    } catch (err: unknown) {
+      const errorMsg =
+        (err as { data?: { message?: string } })?.data?.message ||
+        "Failed to delete the blog post. Please try again.";
+      setDeleteError(errorMsg);
     }
   };
 
@@ -50,7 +60,8 @@ export function BlogList({ onEdit }: BlogListProps) {
       );
       setTimeout(() => setActionSuccess(null), 4000);
     } catch {
-      alert("Failed to toggle blog visibility.");
+      setActionError("Failed to toggle blog visibility. Please try again.");
+      setTimeout(() => setActionError(null), 4000);
     }
   };
 
@@ -102,9 +113,15 @@ export function BlogList({ onEdit }: BlogListProps) {
       </div>
 
       {actionSuccess && (
-        <div className="flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3 text-xs font-medium text-teal-800 animate-fadeIn">
+        <div className="flex items-center gap-2 rounded-xl border border-teal-200 bg-teal-50/80 px-4 py-3 text-xs font-medium text-teal-800 animate-in fade-in">
           <CheckCircle2 size={16} className="text-teal-600 shrink-0" />
           <span>{actionSuccess}</span>
+        </div>
+      )}
+
+      {actionError && (
+        <div className="flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50/80 px-4 py-3 text-xs font-medium text-rose-800 animate-in fade-in">
+          <span>{actionError}</span>
         </div>
       )}
 
@@ -235,8 +252,11 @@ export function BlogList({ onEdit }: BlogListProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleDelete(blog.id, blog.title)}
-                  disabled={isDeleting}
+                  onClick={() => {
+                    setDeleteTarget(blog);
+                    setDeleteError(null);
+                  }}
+                  disabled={isDeleting && deleteTarget?.id === blog.id}
                   className="text-xs h-8 px-2 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
                 >
                   <Trash2 size={13} />
@@ -248,78 +268,32 @@ export function BlogList({ onEdit }: BlogListProps) {
         </div>
       )}
 
-      {/* Blog Preview Modal */}
-      {selectedBlog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-xs">
-          <div className="relative max-h-[90vh] w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col">
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-teal-700">
-                    Blog Preview
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                      selectedBlog.isShow
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-slate-200 text-slate-600"
-                    }`}
-                  >
-                    {selectedBlog.isShow ? "isShow: true" : "isShow: false"}
-                  </span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 line-clamp-1">
-                  {selectedBlog.title}
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedBlog(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
-              >
-                <X size={20} />
-              </button>
-            </div>
+      {/* Animated Magazine Blog Preview Dialog */}
+      <BlogPreviewModal
+        blog={selectedBlog}
+        onClose={() => setSelectedBlog(null)}
+        onEdit={onEdit}
+      />
 
-            <div className="overflow-y-auto px-6 py-6 sm:px-8">
-              {selectedBlog.coverImageUrl && (
-                <img
-                  src={selectedBlog.coverImageUrl}
-                  alt={selectedBlog.title}
-                  className="mb-6 max-h-[360px] w-full rounded-xl object-cover"
-                />
-              )}
-
-              <div className="mb-4 flex items-center gap-2 text-xs text-slate-500">
-                <Calendar size={13} className="text-teal-600" />
-                <span>Published on {formatDate(selectedBlog.createdAt)}</span>
-                {selectedBlog.author?.name && (
-                  <>
-                    <span>•</span>
-                    <span>By {selectedBlog.author.name}</span>
-                  </>
-                )}
-              </div>
-
-              {/* Render rich HTML produced by TinyMCE */}
-              <div
-                className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-a:text-teal-700 prose-img:rounded-xl"
-                dangerouslySetInnerHTML={{ __html: selectedBlog.content }}
-              />
-            </div>
-
-            <div className="border-t border-slate-200 px-6 py-3 bg-slate-50 flex items-center justify-between">
-              <span className="text-xs text-slate-500">
-                {selectedBlog.isShow
-                  ? "✓ Visible in GET /api/blogs?onlyVisible=true"
-                  : "✗ Filtered out from GET /api/blogs?onlyVisible=true"}
-              </span>
-              <Button variant="outline" size="sm" onClick={() => setSelectedBlog(null)}>
-                Close Preview
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Animated Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={!!deleteTarget}
+        onClose={() => {
+          if (!isDeleting) {
+            setDeleteTarget(null);
+            setDeleteError(null);
+          }
+        }}
+        onConfirm={handleConfirmDelete}
+        title="Delete Blog Post?"
+        description="Are you sure you want to permanently delete this blog post? This action cannot be undone and will immediately purge the article and its cover image from your website."
+        itemName={deleteTarget?.title}
+        itemType="Blog Article"
+        confirmText="Delete Permanently"
+        tone="danger"
+        isLoading={isDeleting}
+        error={deleteError}
+      />
     </div>
   );
 }
