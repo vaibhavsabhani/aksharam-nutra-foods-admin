@@ -4,12 +4,12 @@ import { BlogController } from './blog.controller';
 import { BlogService } from './blog.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthGuard } from '../auth/auth.guard';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, UploadModule],
   controllers: [BlogController],
   providers: [BlogService, AuthGuard, JwtService],
   exports: [BlogService],
 })
 export class BlogModule {}
-

@@ -4,16 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "npm run dev:all",
     "dev:all": "concurrently --kill-others-on-fail \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run prisma:studio\"",
     "dev:backend": "nest start --config backend/nest-cli.json --path backend/tsconfig.json --watch",
     "dev:frontend": "next dev frontend --webpack",
-    "build:frontend": "next build frontend --webpack",
     "build:backend": "tsc -p backend/tsconfig.json",
+    "build:frontend": "next build frontend --webpack",
     "start:backend": "node dist/backend/main.js",
     "prisma:generate": "prisma generate",
     "db:seed": "tsx prisma/seed-all.ts",
-    "prisma:studio": "prisma studio",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "prisma:studio": "prisma studio"
   },
   "keywords": [],
   "author": "",

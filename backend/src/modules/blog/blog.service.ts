@@ -1,40 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { v2 as cloudinary } from 'cloudinary';
-
-type UploadedImage = { buffer: Buffer };
 import { PrismaService } from '../prisma/prisma.service';
+import { UploadService, UploadedFileBuffer } from '../upload/upload.service';
 import { CreateBlogDto } from './dto/create-blog.dto';
 import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @Injectable()
 export class BlogService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly uploadService: UploadService,
+  ) {}
 
-  async uploadImage(file: UploadedImage) {
-    const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
-    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-      throw new Error('Cloudinary is not configured');
-    }
-
-    cloudinary.config({
-      cloud_name: CLOUDINARY_CLOUD_NAME,
-      api_key: CLOUDINARY_API_KEY,
-      api_secret: CLOUDINARY_API_SECRET,
-    });
-
-    return new Promise<{ url: string }>((resolve, reject) => {
-      const upload = cloudinary.uploader.upload_stream(
-        { folder: 'aksharam-nutra-foods/blog' },
-        (error, result) => {
-          if (error || !result?.secure_url) {
-            reject(error ?? new Error('Cloudinary upload failed'));
-            return;
-          }
-          resolve({ url: result.secure_url });
-        },
-      );
-      upload.end(file.buffer);
-    });
+  async uploadImage(file: UploadedFileBuffer) {
+    return this.uploadService.uploadImage(file, 'aksharam-nutra-foods/blog');
   }
 
   async create(dto: CreateBlogDto, userId?: number) {
