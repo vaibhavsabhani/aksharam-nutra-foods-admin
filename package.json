@@ -12,7 +12,8 @@
     "build:frontend": "next build frontend --webpack",
     "start:backend": "node dist/backend/main.js",
     "prisma:generate": "prisma generate",
-    "db:seed": "tsx prisma/seed-all.ts",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db push && tsx prisma/seed-all.ts",
     "prisma:studio": "prisma studio"
   },
   "keywords": [],

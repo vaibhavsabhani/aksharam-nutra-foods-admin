@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowRight, CheckCircle2, LoaderCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, LoaderCircle, Mail } from "lucide-react";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,14 +12,120 @@ import { AuthShell } from "@/components/auth/auth-shell";
 import { FormField } from "@/components/auth/form-field";
 import { useForgotPasswordMutation } from "@/lib/api";
 import { getApiError } from "@/lib/hooks";
-import { forgotPasswordSchema, type ForgotPasswordValues } from "@/lib/validation";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordValues,
+} from "@/lib/validations";
 
 export default function ForgotPasswordPage() {
-  const [sent, setSent] = useState(false); const [resetToken, setResetToken] = useState<string>();
+  const [sent, setSent] = useState(false);
+  const [resetToken, setResetToken] = useState<string>();
   const [forgotPassword, { isLoading, error }] = useForgotPasswordMutation();
-  const { register, handleSubmit, formState: { errors } } = useForm<ForgotPasswordValues>({ resolver: zodResolver(forgotPasswordSchema) });
-  async function onSubmit(values: ForgotPasswordValues) { try { const response = await forgotPassword(values).unwrap(); setResetToken(response.resetToken); setSent(true); } catch { /* handled through mutation state */ } }
-  return <AuthShell eyebrow="Account recovery" title="Forgot your password?" description="Enter your work email and we will send a secure link to set a new password." footer={<>Remembered it? <Link className="font-semibold text-teal-700 hover:text-teal-800" href="/login">Back to sign in</Link></>}>
-    {sent ? <div className="space-y-5"><div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800"><CheckCircle2 className="mt-0.5 shrink-0" size={19} /><p className="text-sm leading-6">If an account exists for that email, a reset link has been sent. Check your inbox to continue.</p></div>{resetToken && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800"><p className="font-semibold">Development reset token</p><p className="mt-2 break-all font-mono">{resetToken}</p><Link className="mt-3 inline-block font-semibold underline" href={`/reset-password?token=${resetToken}`}>Continue to reset password</Link></div>}<Button variant="outline" className="w-full" onClick={() => setSent(false)}>Use another email</Button></div> : <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>{error && <Alert>{getApiError(error)}</Alert>}<FormField id="email" label="Work email" error={errors.email?.message}><Input id="email" type="email" autoComplete="email" placeholder="you@company.com" {...register("email")} /></FormField><Button className="w-full" type="submit" disabled={isLoading}>{isLoading ? <LoaderCircle className="animate-spin" size={18} /> : <ArrowRight size={18} />}{isLoading ? "Sending..." : "Send reset link"}</Button></form>}
-  </AuthShell>;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<ForgotPasswordValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+  });
+  async function onSubmit(values: ForgotPasswordValues) {
+    try {
+      const response = await forgotPassword(values).unwrap();
+      setResetToken(response.resetToken);
+      setSent(true);
+    } catch {
+      /* handled through mutation state */
+    }
+  }
+  return (
+    <AuthShell
+      eyebrow="Account recovery"
+      title="Forgot your password?"
+      description="Enter your work email and we will send a secure link to set a new password."
+      footer={
+        <>
+          Remembered it?{" "}
+          <Link
+            className="font-semibold text-teal-700 hover:text-teal-800"
+            href="/login"
+          >
+            Back to sign in
+          </Link>
+        </>
+      }
+    >
+      {sent ? (
+        <div className="space-y-5">
+          <div className="flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
+            <CheckCircle2 className="mt-0.5 shrink-0" size={19} />
+            <p className="text-sm leading-6">
+              If an account exists for that email, a reset link has been sent.
+              Check your inbox to continue.
+            </p>
+          </div>
+          {resetToken && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-800">
+              <p className="font-semibold">Development reset token</p>
+              <p className="mt-2 break-all font-mono">{resetToken}</p>
+              <Link
+                className="mt-3 inline-block font-semibold underline"
+                href={`/reset-password?token=${resetToken}`}
+              >
+                Continue to reset password
+              </Link>
+            </div>
+          )}
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => setSent(false)}
+          >
+            Use another email
+          </Button>
+        </div>
+      ) : (
+        <form
+          className="space-y-4"
+          onSubmit={handleSubmit(onSubmit)}
+          noValidate
+        >
+          {error && <Alert>{getApiError(error)}</Alert>}
+          <FormField
+            id="email"
+            label="Work email"
+            error={errors.email?.message}
+          >
+            <div className="relative">
+              <Mail className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@company.com"
+                className="pl-10 h-12 bg-slate-50/50 hover:bg-white focus:bg-white text-slate-900 border-slate-200 transition-all"
+                {...register("email")}
+              />
+            </div>
+          </FormField>
+          <Button
+            className="group relative mt-2 w-full h-12 text-sm font-bold tracking-wide bg-teal-800 hover:bg-teal-900 text-white shadow-md shadow-teal-950/15 hover:shadow-lg hover:shadow-teal-950/25 active:scale-[0.99] transition-all"
+            type="submit"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <div className="flex items-center justify-center gap-2">
+                <LoaderCircle className="h-4 w-4 animate-spin text-white" />
+                <span>Sending link...</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-2">
+                <span>Send reset link</span>
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+              </div>
+            )}
+          </Button>
+        </form>
+      )}
+    </AuthShell>
+  );
 }

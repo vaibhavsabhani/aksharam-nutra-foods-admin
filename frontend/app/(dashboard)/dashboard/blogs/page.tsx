@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { PenTool, Plus } from "lucide-react";
+import { PenTool } from "lucide-react";
 import { BlogPost } from "@/lib/api";
 import { BlogForm } from "@/components/blog/blog-form";
 import { BlogList } from "@/components/blog/blog-list";

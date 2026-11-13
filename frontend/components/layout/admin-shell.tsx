@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { AdminHeader } from "./admin-header";
 import { AdminSidebar } from "./admin-sidebar";
-import { X } from "lucide-react";
+import { MobileNav } from "./mobile-nav";
+import { AnimatedDashboardCanvas } from "@/components/dashboard/animated-dashboard-canvas";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -11,46 +12,58 @@ interface AdminShellProps {
 
 export function AdminShell({ children }: AdminShellProps) {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-[#f8faf9] text-slate-900">
-      <AdminHeader onToggleSidebar={() => setMobileSidebarOpen(true)} />
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-[#f8faf9] text-slate-900">
+      {/* 1. Fixed Top Header */}
+      <div className="shrink-0 z-30">
+        <AdminHeader onToggleSidebar={() => setMobileSidebarOpen(true)} />
+      </div>
 
-      <div className="flex">
-        {/* Desktop Sidebar */}
-        <div className="hidden min-h-[calc(100vh-4rem)] w-64 shrink-0 lg:block">
-          <div className="sticky top-16 h-[calc(100vh-4rem)]">
-            <AdminSidebar />
-          </div>
+      {/* 2. Workspace Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Fixed Sidebar */}
+        <div className="hidden h-full w-64 shrink-0 lg:block">
+          <AdminSidebar />
         </div>
 
-        {/* Mobile Sidebar Overlay */}
-        {mobileSidebarOpen && (
-          <div className="fixed inset-0 z-50 flex lg:hidden">
-            <div
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
-              onClick={() => setMobileSidebarOpen(false)}
-            />
-            <div className="relative flex w-72 max-w-xs flex-1 flex-col bg-white pt-4 shadow-xl">
-              <button
-                type="button"
-                className="absolute top-4 right-4 grid h-8 w-8 place-items-center rounded-lg text-slate-500 hover:bg-slate-100"
-                onClick={() => setMobileSidebarOpen(false)}
-                aria-label="Close sidebar"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <AdminSidebar onItemClick={() => setMobileSidebarOpen(false)} />
-            </div>
-          </div>
-        )}
+        {/* Animated Mobile & Tablet Drawer */}
+        <MobileNav
+          isOpen={mobileSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+        />
 
-        {/* Main Content Area */}
-        <main className="flex-1 px-4 py-8 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-6xl">{children}</div>
+        {/* 3. Main Content Area (Independent Smooth Scrolling) */}
+        <main
+          onMouseMove={handleMouseMove}
+          className="relative flex-1 h-full overflow-y-auto px-4 py-8 sm:px-8 lg:px-12"
+        >
+          {/* Subtle Ambient Background Canvas */}
+          <AnimatedDashboardCanvas />
+
+          {/* Interactive Cursor Spotlight */}
+          <div
+            className="pointer-events-none absolute -inset-px opacity-30 transition-opacity duration-300"
+            style={{
+              background: `radial-gradient(700px circle at ${mousePos.x}px ${mousePos.y}px, rgba(13, 148, 136, 0.06), transparent 75%)`,
+            }}
+          />
+
+          {/* Page Content with Smooth Entrance Animation */}
+          <div className="relative z-10 mx-auto max-w-6xl pb-20 animate-in fade-in slide-in-from-bottom-2 duration-400">
+            {children}
+          </div>
         </main>
       </div>
     </div>
   );
 }
-
