@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   PenTool,
   MessageSquareQuote,
+  Mail,
   ShieldCheck,
   Sparkles,
   ExternalLink,
@@ -32,6 +33,13 @@ const NAV_ITEMS = [
     icon: MessageSquareQuote,
     exact: false,
     badge: "Social",
+  },
+  {
+    title: "Inquiries",
+    href: "/dashboard/contacts",
+    icon: Mail,
+    exact: false,
+    badge: "Leads",
   },
 ];
 

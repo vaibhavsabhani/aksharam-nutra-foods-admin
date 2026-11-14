@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   PenTool,
   MessageSquareQuote,
+  Mail,
   LogOut,
   ShieldCheck,
   Plus,
@@ -41,6 +42,13 @@ const NAV_ITEMS = [
     icon: MessageSquareQuote,
     exact: false,
     description: "Customer reviews & feedback",
+  },
+  {
+    title: "Inquiries",
+    href: "/dashboard/contacts",
+    icon: Mail,
+    exact: false,
+    description: "Customer leads & landing inquiries",
   },
 ];
 
