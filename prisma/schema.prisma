@@ -116,3 +116,36 @@ model Testimonial {
   @@index([authorId])
   @@index([createdAt])
 }
+
+// CONTACT INQUIRIES FROM LANDING PAGE
+
+enum ContactStatus {
+  PENDING
+  CONTACTED
+  RESOLVED
+  ARCHIVED
+}
+
+model Contact {
+  id          Int           @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String
+  message     String        @db.Text
+  ipAddress   String?
+  city        String?
+  region      String?
+  country     String?
+  countryCode String?
+  latitude    Float?
+  longitude   Float?
+  status      ContactStatus @default(PENDING)
+  notes       String?       @db.Text
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@index([createdAt])
+}
+
